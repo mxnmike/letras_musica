@@ -5,31 +5,38 @@ const LetrasContext = createContext()
 
 const LetrasProvider = ({ children }) => {
   const [alerta, setAlerta] = useState('')
+  const [letra, setLetra] = useState('')
+  const [cargando, setCargando] = useState(false)
 
   const busquedaLetra = async busqueda => {
     const { artista, cancion } = busqueda
+    setCargando(true)
+    console.log('cargando:', cargando)
     try {
-      const baseURL = 'https://api.musixmatch.com/ws/1.1'
-      const apiKey = '23fe66aebd76696c023fac54057663d7'
-      const url = `${baseURL}/track.search?apikey=${apiKey}&q_artist=${artista}&q_track=${cancion}`
-      console.log('url', url)
-
+      const url = `${import.meta.env.VITE_API_URL}/${cancion}/${artista}`
+      console.log(url)
       const config = {
-        // mode: 'no-cors',s
+        method: 'GET',
+        url: `${url}`,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': '*',
-          'Access-Control-Allow-Credentials': 'true',
-          accept:
-            'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+          'X-RapidAPI-Key': `${import.meta.env.VITE_API_KEY}`,
+          'X-RapidAPI-Host': `${import.meta.env.VITE_API_HOST}`,
         },
       }
-      const resultado = axios.get(url, config)
-
-      console.log('resultado', resultado)
+      console.log('config:', config)
+      axios.request(config).then(function (response) {
+        const { data } = response
+        console.log('data:', data)
+        setLetra(data.lyrics)
+        setAlerta('')
+      })
     } catch (error) {
+      setLetra('')
+      setAlerta('Canción no encontrada')
       console.log(error)
     }
+    setCargando(false)
+    console.log('cargando2:', cargando)
   }
 
   return (
@@ -38,6 +45,8 @@ const LetrasProvider = ({ children }) => {
         alerta,
         setAlerta,
         busquedaLetra,
+        letra,
+        cargando,
       }}
     >
       {children}
